@@ -26,6 +26,8 @@ import defaults from "./defaults.json" with {type: "json"};
 
 const instance = App.init(defaults, ServiceHandler);
 
+// run any module level initialisation based on instance.config etc.
+
 instance.run();
 ```
 
