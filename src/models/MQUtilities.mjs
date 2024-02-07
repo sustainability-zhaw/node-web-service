@@ -1,7 +1,7 @@
 import amqp from "amqplib";
 import * as Logger from "service_logger";
 
-import { setTimeout } from "node:timers/promises";
+import * as timers from "node:timers/promises";
 
 const log = Logger.get("models/MQUtilities");
 const Connection = {};
@@ -9,6 +9,21 @@ const Connection = {};
 export function init(options) {
     Connection.target = options.mq_exchange;
     Connection.sendkey = options.mq_key;
+
+    if (!options.mq_host) {
+        log.error("No mq_host provided");
+        throw new Error("E_NO_MQHOST");
+    }
+
+    if (!options.mq_user) {
+        log.error("No mq_user provided");
+        throw new Error("E_NO_MQUSER");
+    }
+
+    if (!options.mq_pass) {
+        log.error("No mq_pass provided");
+        throw new Error("E_NO_MQPASS");
+    }
 
     Connection.host = {
         protocol: "amqp",
@@ -43,12 +58,14 @@ export async function connect() {
     log.debug("MQ channel created");
 }
 
-function waitRandomTime(min, max) {
+async function waitRandomTime(min, max) {
     const waitRange = Math.floor(
         (Math.random() * (max + 1 - min) + min) * 1000
     );
 
-    return setTimeout(waitRange);
+    await timers.setTimeout(waitRange);
+    log.debug(`waited for ${waitRange}ms`);
+    // return new Promise((r) => setTimeout(r, waitRange));
 }
 
 export async function signal(updates) {

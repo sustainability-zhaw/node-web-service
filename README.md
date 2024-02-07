@@ -7,8 +7,11 @@ focus on handler functions instead by removing common code. It also enforces
 common standard practices for the services.
 
 ## Features
+- JSON log format (based on `winston`)
+- Endpoint level performance logging 
 - Koa integration 
 - Message Queue integration
+- graphql endpoint integration
 - Dynamic configuration
 
 ## Usage
@@ -16,6 +19,8 @@ common standard practices for the services.
 ```bash
 npm install @phish108/web-service
 ```
+
+After that the component can be included in the project.
 
 ```javascript
 import * as App from "@phish108/web-service"
@@ -30,6 +35,12 @@ const instance = App.init(defaults, ServiceHandler);
 
 instance.run();
 ```
+
+The instance has a single `run()` function, but includes references to 
+the service's `config`, `Logger`, message queue (`mq`) and graphql 
+database (`db`). These options can be used to initialise anly components 
+if needed. These components are also available per request in the 
+request's `ctx.state` object.
 
 ## Service configuration
 
@@ -80,5 +91,5 @@ locations in the order given below:
 It is convinient not to touch these locations and just place your config
 in one of these locations in your Docker container. If you insist, you 
 can pass custom locations to the `init()` function. These locations 
-will be prefixed to the default locations, so in case a sysadmin ignores 
+will be prepended to the default locations, so in case a sysadmin ignores 
 your locations the default locations will still work. 

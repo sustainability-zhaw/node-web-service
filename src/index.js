@@ -7,6 +7,8 @@ import * as Config from "@phish108/yaml-configurator";
 import * as Logger from "service_logger";
 
 import * as MQ from "./models/MQUtilities.mjs";
+import * as DB from "./models/GraphQL.mjs";
+
 import {logHeader, logRequest} from "./handler/index.mjs";
 
 export async function init(defaults, ServiceHandler, cfg_locations = []) {
@@ -64,14 +66,27 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
             }
         });
 
-    // init message queue
-    try {
-        MQ.init(config.service || config.message_queue);
-        MQ.connect();
+    // init database
+    if ((config.service?.dbhost || config.database?.dbhost)){
+        try {
+            DB.init(config.database || config.service);
+        }
+        catch (err) {
+            log.error(err.message);
+            throw new Error("E_FAILED_DATABASE_CONNECTION");
+        }
     }
-    catch (err) {
-        log.error(err.message);
-        throw new Error("E_FAILED_MESSAGE_QUEUE_CONNECTION");
+
+    // init message queue
+    if ((config.service?.mq_host || config.message_queue?.mq_host)){
+        try {
+            MQ.init(config.message_queue || config.service);
+            MQ.connect();
+        }
+        catch (err) {
+            log.error(err.message);
+            throw new Error("E_FAILED_MESSAGE_QUEUE_CONNECTION");
+        }
     }
 
     const app = new Koa();
@@ -80,8 +95,8 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
     async function stateInit() {
         ctx.state.config = config;
         ctx.state.logger = Logger;
-        // ctx.state.mq = MQ;
-        // ctx.state.db = DB;
+        ctx.state.mq = MQ;
+        ctx.state.db = DB;
         await next();
     }
 
@@ -119,7 +134,7 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
         run: () => app.listen(config.api?.port || 8080),
         config,
         logger: Logger,
-        // mq: MQ,
-        // db: DB
+        mq: MQ,
+        db: DB
     };
 }
