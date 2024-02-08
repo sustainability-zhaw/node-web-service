@@ -2,6 +2,8 @@
 
 Synthesize common functions for JS-Koa Webserivces.
 
+![Automatic Testing](https://github.com/sustainability-zhaw/node-web-serivce/actions/workflows/tests.yml/badge.svg)
+
 This package serves as the foundation for the sdg js services. It allows to 
 focus on handler functions instead by removing common code. It also enforces 
 common standard practices for the services.
