@@ -11,21 +11,21 @@ export function init(options) {
         log.error("No dbhost provided");
         throw new Error("E_NO_DBHOST");
     }
-    
-    Connection.target = `http://${options.dbhost}/graphql`;
+
+    Connection.host = `http://${options.dbhost}/graphql`;
 }
 
 /**
  * Performs a Graphql query with the given parameters
- * 
- * @param {string} query 
- * @param {object} variables 
+ *
+ * @param {string} query
+ * @param {object} variables
  * @param {AbortSignal} abortSignal (Optional)
  * @returns responst object or null
  */
 export async function submit(query, variables, abortSignal) {
     let result = null;
-    
+
     for (let i = 0; i < 10; i++) {
         result = await fetchJson({ query, variables }, abortSignal);
         if (result) {
@@ -43,7 +43,7 @@ async function waitRandomTime(min, max) {
         (Math.random() * (max + 1 - min) + min) * 1000
     );
 
-    await timers.setTimeout(waitRange, 'nextTick');
+    await timers.setTimeout(waitRange, "nextTick");
     log.debug(`waited for ${waitRange}ms`);
     // return new Promise((r) => setTimeout(r, waitRange));
 }
@@ -64,10 +64,10 @@ async function fetchJson(jsonObj, signal) {
         signal = new AbortController().signal;
     }
 
-    // log.debug(`fetch ${targetHost} with ${body}`);
+    // log.debug(`fetch ${Connection.host} with ${body}`);
 
     try {
-        const response = await fetch(Connection.target, {
+        const response = await fetch(Connection.host, {
             signal,
             method,
             headers,
@@ -78,7 +78,7 @@ async function fetchJson(jsonObj, signal) {
         result = await response.json();
     }
     catch (err) {
-        log.error(`fetching ${targetHost} failed: ${err.message}`);
+        log.error(`fetching ${Connection.host} failed: ${err.message}`);
         // there are 2 reasons for an error:
         // 1. the file is invalid
         // 2. the MQ connection is broken
