@@ -1,0 +1,37 @@
+name: Docker Buildx
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: 
+      - main
+  
+  pull_request:
+    branches: 
+      - main
+
+  workflow_dispatch:
+
+permissions: 
+  packages: write
+
+  
+jobs:
+  # This workflow contains a single job called "build"
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      # https://github.com/docker/setup-qemu-action
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 21
+      - name: setup package
+        run: npm ci
+      - name: linting
+        run: npm run lint
+      - name: test
+        run: npm run test
+    
