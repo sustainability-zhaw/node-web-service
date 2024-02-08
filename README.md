@@ -13,22 +13,25 @@ common standard practices for the services.
 - Endpoint level performance logging 
 - Koa integration 
 - Message Queue integration
-- graphql endpoint integration
+- graphql backend integration
 - Dynamic configuration
 
 ## Usage
 
 ```bash
-npm install @phish108/web-service
+npm install @phish108/web-service-core
 ```
 
 After that the component can be included in the project.
 
 ```javascript
-import * as App from "@phish108/web-service"
+import * as App from "@phish108/web-service-core"
 
+// load your service's request handlers
 import * as ServiceHandler from "./handler"
 
+// load your service's configuration defaults, which should
+// include your endpoint definition.
 import defaults from "./defaults.json" with {type: "json"};
 
 const instance = App.init(defaults, ServiceHandler);
