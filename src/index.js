@@ -7,14 +7,14 @@ import * as Config from "@phish108/yaml-configurator";
 import * as Logger from "service_logger";
 
 import * as MQ from "./models/MQUtilities.mjs";
-import * as DB from "./models/GraphQL.mjs";
+import * as GQL from "./models/GraphQL.mjs";
 
 import {logHeader, logRequest} from "./handler/index.mjs";
 
 export async function init(defaults, ServiceHandler, cfg_locations = []) {
     Logger.init("info");
 
-    const log = Logger.get("web-service stack");
+    const log = Logger.get("web-service-core");
 
     if (!ServiceHandler) {
         log.error("No ServiceHandler provided");
@@ -91,7 +91,7 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
     // init database
     if (config.service?.dbhost || config.database?.dbhost){
         try {
-            DB.init(config.database || config.service);
+            GQL.init(config.database || config.service);
         }
         catch (err) {
             log.error(err.message);
@@ -118,7 +118,7 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
         ctx.state.config = config;
         ctx.state.logger = Logger;
         ctx.state.mq = MQ;
-        ctx.state.db = DB;
+        ctx.state.gql = GQL;
         await next();
     }
 
@@ -153,10 +153,13 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
     app.use(koarouter.routes());
 
     return {
-        run: () => app.listen(config.api?.port || 8080),
+        run: () => {
+            log.info(`Starting server on port ${config.api?.port || 8080}`);
+            return app.listen(config.api?.port || 8080);
+        },
         config,
         logger: Logger,
         mq: MQ,
-        db: DB
+        gql: GQL
     };
 }
