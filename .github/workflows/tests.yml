@@ -1,4 +1,4 @@
-name: Docker Buildx
+name: Linting and Testing
 
 # Controls when the workflow will run
 on:
@@ -9,12 +9,6 @@ on:
   pull_request:
     branches: 
       - main
-
-  workflow_dispatch:
-
-permissions: 
-  packages: write
-
   
 jobs:
   # This workflow contains a single job called "build"
