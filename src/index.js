@@ -18,7 +18,7 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
 
     if (!ServiceHandler) {
         log.error("No ServiceHandler provided");
-        throw new Error("E_NO_SERVICE_HANDLER");
+        throw new Error("ERR_NO_SERVICERR_HANDLER");
     }
 
     if (!Array.isArray(cfg_locations)) {
@@ -43,56 +43,78 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
 
     if ( !("endpoints" in config)) {
         log.error("Missing endpoints in configuration");
-        throw new Error("E_MISSING_ENDPOINTS");
+        throw new Error("ERR_MISSING_ENDPOINTS");
+    }
+
+    if (config.endpoints.length === 0) {
+        log.error("No endpoints defined in configuration");
+        throw new Error("ERR_NO_ENDPOINTS_DEFINED");
     }
 
     // check if all defined endpoints have handlers.
     config.endpoints
-        .reduce((acc, {handler}) => {
+        .reduce((acc, {route, handler}, i) => {
+            if (typeof route !== "string" || route.length === 0) {
+                log.error(`Invalid route definition for endpoint ${i}` );
+                throw new Error("ERR_MISSING_ROUTE");
+            }
+
+            if (!handler) {
+                log.error(`No handler defined for endpoint ${i}`);
+                throw new Error("ERR_MISSING_HANDLER");
+            }
+
             if (!Array.isArray(handler)) {
                 handler = [handler];
             }
+
+            if (handler.length === 0) {
+                log.error(`No handler defined for endpoint ${i}`);
+                throw new Error("ERR_EMPTY_HANDLER_STACK");
+            }
+
             acc.push(...handler);
             return acc;
         }, [])
-        .forEach(handler => {
+        .map(handler => {
             if (!(handler in ServiceHandler)) {
-                log.error(`Missing service handler for ${handler}`);
-                throw new Error("E_MISSING_HANDLER");
+                log.error(`Missing service handler for "${handler}"`);
+                throw new Error("ERR_MISSING_HANDLER_FUNCTION");
             }
             if (typeof ServiceHandler[handler] !== "function") {
-                log.error(`Service handler for ${handler} is not a function`);
-                throw new Error("E_HANDLER_NOT_FUNCTION");
+                log.error(`Service handler for "${handler}" is not a function`);
+                throw new Error("ERR_HANDLER_NOT_A_FUNCTION");
             }
         });
 
+
     // init database
-    if ((config.service?.dbhost || config.database?.dbhost)){
+    if (config.service?.dbhost || config.database?.dbhost){
         try {
             DB.init(config.database || config.service);
         }
         catch (err) {
             log.error(err.message);
-            throw new Error("E_FAILED_DATABASE_CONNECTION");
+            throw new Error("ERR_FAILED_DATABASE_CONNECTION");
         }
     }
 
     // init message queue
-    if ((config.service?.mq_host || config.message_queue?.mq_host)){
+    if (config.service?.mq_host || config.message_queue?.mq_host){
         try {
             MQ.init(config.message_queue || config.service);
             MQ.connect();
         }
         catch (err) {
             log.error(err.message);
-            throw new Error("E_FAILED_MESSAGE_QUEUE_CONNECTION");
+            throw new Error("ERR_FAILED_MESSAGE_QUEUE_CONNECTION");
         }
     }
 
     const app = new Koa();
     const koarouter = new Router;
 
-    async function stateInit() {
+    async function stateInit(ctx, next) {
         ctx.state.config = config;
         ctx.state.logger = Logger;
         ctx.state.mq = MQ;
@@ -101,7 +123,7 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
     }
 
     // add routes
-    config.endpoints.reduce((router, {endpoint, handler, method}) => {
+    config.endpoints.reduce((router, {route, handler, method}) => {
         if (!Array.isArray(handler)) {
             handler = [handler];
         }
@@ -119,15 +141,15 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
         }
 
         if (method in ["post", "put", "patch"]) {
-            router[method](endpoint, koaBody.koaBody(), pipeline);    
+            router[method](route, koaBody.koaBody(), pipeline);
         }
         else {
-            router[method](endpoint, pipeline);
+            router[method](route, pipeline);
         }
-        
+
         return router;
     }, koarouter);
-    
+
     app.use(koarouter.routes());
 
     return {
