@@ -21,7 +21,7 @@ jobs:
       # https://github.com/docker/setup-qemu-action
       - uses: actions/setup-node@v4
         with:
-          node-version: 21
+          node-version: 21.x
       - name: setup package
         run: npm ci
       - name: linting
