@@ -1,6 +1,6 @@
 {
   "name": "@phish108/web-service-core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Basic Wrapper for Service Endpoints for REST and MQ ",
   "main": "src/index.js",
   "type": "module",
