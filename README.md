@@ -34,7 +34,7 @@ import * as ServiceHandler from "./handler"
 // include your endpoint definition.
 import defaults from "./defaults.json" with {type: "json"};
 
-const instance = App.init(defaults, ServiceHandler);
+const instance = await App.init(defaults, ServiceHandler);
 
 // run any module level initialisation based on instance.config etc.
 
