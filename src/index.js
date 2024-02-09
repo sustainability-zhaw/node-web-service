@@ -9,7 +9,7 @@ import * as Logger from "service_logger";
 import * as MQ from "./models/MQUtilities.mjs";
 import * as GQL from "./models/GraphQL.mjs";
 
-import {logHeader, logRequest} from "./handler/index.mjs";
+import {logHeader, logRequest, catchall} from "./handler/index.mjs";
 
 export async function init(defaults, ServiceHandler, cfg_locations = []) {
     Logger.init("info");
@@ -39,7 +39,9 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
         defaults
     );
 
-    log.info(config);
+    Logger.init(config.debug || {level: "debug"});
+
+    log.debug(config);
 
     if ( !("endpoints" in config)) {
         log.error("Missing endpoints in configuration");
@@ -129,11 +131,9 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
         }
 
         const pipeline = KoaCompose([
-            logHeader,
-            stateInit,
+            catchall,
             // load the handler functions by name
-            ...handler.map(h => ServiceHandler[h]),
-            logRequest
+            ...handler.map(h => ServiceHandler[h])
         ]);
 
         if (!method) {
@@ -141,7 +141,12 @@ export async function init(defaults, ServiceHandler, cfg_locations = []) {
         }
 
         if (method in ["post", "put", "patch"]) {
-            router[method](route, koaBody.koaBody(), pipeline);
+            router[method](route, koaBody.koaBody(), KoaCompose([
+                logHeader,
+                stateInit,
+                pipeline,
+                logRequest
+            ]));
         }
         else {
             router[method](route, pipeline);
