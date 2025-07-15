@@ -28,7 +28,7 @@
     "@koa/router": "13.1.0",
     "@phish108/yaml-configurator": "1.2.0",
     "amqplib": "0.10.5",
-    "koa": "2.16.1",
+    "koa": "3.0.0",
     "koa-body": "6.0.1",
     "koa-compose": "4.1.0",
     "service_logger": "github:phish108/node-service-logger#5aee176"
