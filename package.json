@@ -21,7 +21,7 @@
   "homepage": "https://github.com/sustainability-zhaw/node-web-service#readme",
   "devDependencies": {
     "@eslint/js": "9.31.0",
-    "eslint": "9.24.0",
+    "eslint": "9.31.0",
     "globals": "16.3.0"
   },
   "dependencies": {
