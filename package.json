@@ -25,7 +25,7 @@
     "globals": "16.3.0"
   },
   "dependencies": {
-    "@koa/router": "13.1.0",
+    "@koa/router": "14.0.0",
     "@phish108/yaml-configurator": "1.2.0",
     "amqplib": "0.10.5",
     "koa": "3.0.0",
